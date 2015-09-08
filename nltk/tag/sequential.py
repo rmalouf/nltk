@@ -23,7 +23,7 @@ import re
 
 from nltk.probability import ConditionalFreqDist
 from nltk.classify import NaiveBayesClassifier
-from nltk.compat import python_2_unicode_compatible
+from nltk.compat import python_2_unicode_compatible, izip
 
 from nltk.tag.api import TaggerI, FeaturesetTaggerI
 
@@ -59,7 +59,7 @@ class SequentialBackoffTagger(TaggerI):
         tags = []
         for i in range(len(tokens)):
             tags.append(self.tag_one(tokens, i, tags))
-        return list(zip(tokens, tags))
+        return list(izip(tokens, tags))
 
     def tag_one(self, tokens, index, history):
         """
@@ -175,7 +175,7 @@ class ContextTagger(SequentialBackoffTagger):
         # Count how many times each tag occurs in each context.
         fd = ConditionalFreqDist()
         for sentence in tagged_corpus:
-            tokens, tags = zip(*sentence)
+            tokens, tags = izip(*sentence)
             for index, (token, tag) in enumerate(sentence):
                 # Record the event.
                 token_count += 1
@@ -655,7 +655,7 @@ class ClassifierBasedTagger(SequentialBackoffTagger, FeaturesetTaggerI):
 
         for sentence in tagged_corpus:
             history = []
-            untagged_sentence, tags = zip(*sentence)
+            untagged_sentence, tags = izip(*sentence)
             for index in range(len(sentence)):
                 featureset = self.feature_detector(untagged_sentence,
                                                     index, history)

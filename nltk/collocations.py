@@ -36,8 +36,6 @@ from nltk.compat import iteritems
 
 from nltk.probability import FreqDist
 from nltk.util import ngrams
-from nltk.metrics import ContingencyMeasures, BigramAssocMeasures, TrigramAssocMeasures
-from nltk.metrics.spearman import ranks_from_scores, spearman_correlation
 
 
 class AbstractCollocationFinder(object):

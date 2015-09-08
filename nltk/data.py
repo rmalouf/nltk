@@ -992,7 +992,7 @@ class SeekableUnicodeStreamReader(object):
     this shouldn't cause a problem with any of python's builtin
     unicode encodings.
     """
-    DEBUG = True #: If true, then perform extra sanity checks.
+    DEBUG = False #: If true, then perform extra sanity checks.
 
     @py3_data
     def __init__(self, stream, encoding, errors='strict'):

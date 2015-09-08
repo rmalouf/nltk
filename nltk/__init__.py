@@ -116,7 +116,6 @@ from nltk.decorators import decorator, memoize
 from nltk.featstruct import *
 from nltk.grammar import *
 from nltk.probability import *
-from nltk.text import *
 from nltk.tree import *
 from nltk.util import *
 from nltk.jsontags import *
@@ -147,6 +146,7 @@ chat = lazyimport.LazyModule('nltk.chat', locals(), globals())
 corpus = lazyimport.LazyModule('nltk.corpus', locals(), globals())
 draw = lazyimport.LazyModule('nltk.draw', locals(), globals())
 toolbox = lazyimport.LazyModule('nltk.toolbox', locals(), globals())
+text = lazyimport.LazyModule('nltk.text', locals(), globals())
 
 # Optional loading
 
