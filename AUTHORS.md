@@ -20,6 +20,7 @@
 - Robert Berwick
 - Dan Blanchard
 - Nathan Bodenstab
+- Alexander Böhm
 - Francis Bond
 - Paul Bone
 - Jordan Boyd-Graber
@@ -151,6 +152,7 @@
 - Ceri Stagg
 - Peter Stahl
 - Oliver Steele
+- Thomas Stieglmaier
 - Jan Strunk
 - Liling Tan
 - Claire Taylor
@@ -169,6 +171,7 @@
 - Patrick Ye
 - Geraldine Sim Wei Ying
 - Jason Yoder
+- Thomas Zieglier
 - 0ssifrage
 - ducki13
 - kiwipi
@@ -179,3 +182,4 @@
 - wvanlint
 - Álvaro Justen <https://github.com/turicas>
 - bjut-hz
+- Sergio Oller

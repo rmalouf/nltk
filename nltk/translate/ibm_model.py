@@ -54,8 +54,7 @@ def longest_target_sentence_length(sentence_aligned_corpus):
     max_m = 0
     for aligned_sentence in sentence_aligned_corpus:
         m = len(aligned_sentence.words)
-        if m > max_m:
-            max_m = m
+        max_m = max(m, max_m)
     return max_m
 
 
@@ -105,6 +104,14 @@ class IBMModel(object):
         that is aligned to NULL.
         Used in model 3 and higher.
         """
+
+    def set_uniform_probabilities(self, sentence_aligned_corpus):
+        """
+        Initialize probability tables to a uniform distribution
+
+        Derived classes should implement this accordingly.
+        """
+        pass
 
     def init_vocab(self, sentence_aligned_corpus):
         src_vocab = set()
@@ -374,8 +381,8 @@ class AlignmentInfo(object):
     alignment, cepts, and fertility.
 
     Warning: Alignments are one-indexed here, in contrast to
-    nltk.align.Alignment and nltk.align.AlignedSent, which are zero-
-    indexed. This class is not meant to be used outside of IBM models.
+    nltk.translate.Alignment and AlignedSent, which are zero-indexed
+    This class is not meant to be used outside of IBM models.
     """
 
     def __init__(self, alignment, src_sentence, trg_sentence, cepts):
@@ -475,7 +482,7 @@ class AlignmentInfo(object):
     def zero_indexed_alignment(self):
         """
         :return: Zero-indexed alignment, suitable for use in external
-            ``nltk.align`` modules like ``nltk.align.Alignment``
+            ``nltk.translate`` modules like ``nltk.translate.Alignment``
         :rtype: list(tuple)
         """
         zero_indexed_alignment = []
@@ -521,6 +528,6 @@ class Counts(object):
     def update_fertility(self, count, alignment_info):
         for i in range(0, len(alignment_info.src_sentence)):
             s = alignment_info.src_sentence[i]
-            phi = len(alignment_info.cepts[i])
+            phi = alignment_info.fertility_of_i(i)
             self.fertility[phi][s] += count
             self.fertility_for_any_phi[s] += count
