@@ -6,6 +6,7 @@
 # URL: <http://nltk.org/>
 # For license information, see LICENSE.TXT
 
+import io
 import os
 import bisect
 import re
@@ -24,7 +25,6 @@ from nltk.compat import string_types, text_type
 from nltk.tokenize import wordpunct_tokenize
 from nltk.internals import slice_bounds
 from nltk.data import PathPointer, FileSystemPathPointer, ZipFilePathPointer
-from nltk.data import SeekableUnicodeStreamReader
 from nltk.util import AbstractLazySequence, LazySubsequence, LazyConcatenation, py25
 
 ######################################################################
@@ -208,8 +208,7 @@ class StreamBackedCorpusView(AbstractLazySequence):
         if isinstance(self._fileid, PathPointer):
             self._stream = self._fileid.open(self._encoding)
         elif self._encoding:
-            self._stream = SeekableUnicodeStreamReader(
-                open(self._fileid, 'rb'), self._encoding)
+            self._stream = io.open(self._fileid, 'rt', encoding=self._encoding)
         else:
             self._stream = open(self._fileid, 'rb')
 

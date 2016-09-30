@@ -309,9 +309,10 @@ class FileSystemPathPointer(PathPointer, text_type):
         return self._path
 
     def open(self, encoding=None):
-        stream = open(self._path, 'rb')
-        if encoding is not None:
-            stream = SeekableUnicodeStreamReader(stream, encoding)
+        if encoding is None:
+           stream = open(self._path, 'rb')
+        else:
+            stream = io.open(self._path, 'rt', encoding=encoding)
         return stream
 
     def file_size(self):
