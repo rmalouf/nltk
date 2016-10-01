@@ -171,10 +171,11 @@ class StreamBackedCorpusView(AbstractLazySequence):
 
         # Find the length of the file.
         try:
-            if isinstance(self._fileid, PathPointer):
-                self._eofpos = self._fileid.file_size()
-            else:
-                self._eofpos = os.stat(self._fileid).st_size
+            self._open()
+            self._stream.read()
+            self._eofpos = self._stream.tell()
+            self._stream.seek(0)
+            self.close()
         except Exception as exc:
             raise ValueError('Unable to open or access %r -- %s' %
                              (fileid, exc))
@@ -210,7 +211,7 @@ class StreamBackedCorpusView(AbstractLazySequence):
         elif self._encoding:
             self._stream = io.open(self._fileid, 'rt', encoding=self._encoding)
         else:
-            self._stream = open(self._fileid, 'rb')
+            self._stream = io.open(self._fileid, 'rb')
 
     def close(self):
         """

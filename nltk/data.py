@@ -310,7 +310,7 @@ class FileSystemPathPointer(PathPointer, text_type):
 
     def open(self, encoding=None):
         if encoding is None:
-           stream = open(self._path, 'rb')
+           stream = io.open(self._path, 'rb')
         else:
             stream = io.open(self._path, 'rt', encoding=encoding)
         return stream
