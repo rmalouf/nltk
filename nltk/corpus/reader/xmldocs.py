@@ -14,7 +14,6 @@ Corpus reader for corpora whose documents are xml files.
 import codecs
 from xml.etree import ElementTree
 
-from nltk.data import SeekableUnicodeStreamReader
 from nltk.tokenize import WordPunctTokenizer
 from nltk.internals import ElementWrapper
 
@@ -280,9 +279,9 @@ class XMLCorpusView(StreamBackedCorpusView):
             last_open_bracket = fragment.rfind("<")
             if last_open_bracket > 0:
                 if self._VALID_XML_RE.match(fragment[:last_open_bracket]):
-                    if isinstance(stream, SeekableUnicodeStreamReader):
+                    if isinstance(stream, io.TextIOWrapper):
                         stream.seek(startpos)
-                        stream.char_seek_forward(last_open_bracket)
+                        stream.read(last_open_bracket)
                     else:
                         stream.seek(-(len(fragment) - last_open_bracket), 1)
                     return fragment[:last_open_bracket]
@@ -312,7 +311,7 @@ class XMLCorpusView(StreamBackedCorpusView):
         elt_text = ""
 
         while elts == [] or elt_start is not None:
-            if isinstance(stream, SeekableUnicodeStreamReader):
+            if isinstance(stream, io.TextIOWrapper):
                 startpos = stream.tell()
             xml_fragment = self._read_xml_fragment(stream)
 
@@ -377,9 +376,9 @@ class XMLCorpusView(StreamBackedCorpusView):
                     # we've gotten so far (elts is non-empty).
                     if self._DEBUG:
                         print(" " * 36 + "(backtrack)")
-                    if isinstance(stream, SeekableUnicodeStreamReader):
+                    if isinstance(stream, io.TextIOWrapper):
                         stream.seek(startpos)
-                        stream.char_seek_forward(elt_start)
+                        stream.read(elt_start)
                     else:
                         stream.seek(-(len(xml_fragment) - elt_start), 1)
                     context = context[: elt_depth - 1]

@@ -326,7 +326,7 @@ class FileSystemPathPointer(PathPointer, str):
     def open(self, encoding=None):
         stream = open(self._path, "rb")
         if encoding is not None:
-            stream = SeekableUnicodeStreamReader(stream, encoding)
+            stream = io.TextIOWrapper(stream, encoding=encoding)
         return stream
 
     def file_size(self):
@@ -373,7 +373,7 @@ class GzipFileSystemPathPointer(FileSystemPathPointer):
     def open(self, encoding=None):
         stream = GzipFile(self._path, "rb")    
         if encoding:
-            stream = SeekableUnicodeStreamReader(stream, encoding)
+            stream = io.TextIOWrapper(stream, encoding=encoding)
         return stream
 
 
@@ -442,7 +442,7 @@ class ZipFilePathPointer(PathPointer):
         if self._entry.endswith(".gz"):
             stream = GzipFile(self._entry, fileobj=stream)
         elif encoding is not None:
-            stream = SeekableUnicodeStreamReader(stream, encoding)
+            stream = io.TextIOWrapper(stream, encoding=encoding)
         return stream
 
     def file_size(self):
@@ -966,7 +966,7 @@ class OpenOnDemandZipFile(zipfile.ZipFile):
 # { Seekable Unicode Stream Reader
 ######################################################################
 
-
+@deprecated("Use io.TextIOWrapper instead.")
 class SeekableUnicodeStreamReader(object):
     """
     A stream reader that automatically encodes the source byte stream

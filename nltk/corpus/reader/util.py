@@ -205,9 +205,7 @@ class StreamBackedCorpusView(AbstractLazySequence):
         if isinstance(self._fileid, PathPointer):
             self._stream = self._fileid.open(self._encoding)
         elif self._encoding:
-            self._stream = SeekableUnicodeStreamReader(
-                open(self._fileid, "rb"), self._encoding
-            )
+            self._stream = open(self._fileid, "rt", encoding=self._encoding)
         else:
             self._stream = open(self._fileid, "rb")
 
