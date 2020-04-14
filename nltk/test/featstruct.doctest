@@ -1,10 +1,9 @@
-.. Copyright (C) 2001-2016 NLTK Project
+.. Copyright (C) 2001-2020 NLTK Project
 .. For license information, see LICENSE.TXT
 
 ==================================
  Feature Structures & Unification
 ==================================
-    >>> from __future__ import print_function
     >>> from nltk.featstruct import FeatStruct
     >>> from nltk.sem.logic import Variable, VariableExpression, Expression
 
@@ -334,7 +333,7 @@ base value types that have custom unification methods.  For example,
 the following feature value type encodes a range, and defines
 unification as taking the intersection on the ranges:
 
-    >>> from nltk.compat import total_ordering
+    >>> from functools import total_ordering
     >>> from nltk.featstruct import CustomFeatureValue, UnificationFailure
     >>> @total_ordering
     ... class Range(CustomFeatureValue):
@@ -1227,4 +1226,3 @@ is present.)
 
 ..
     >>> del fs1, fs2 # clean-up
-

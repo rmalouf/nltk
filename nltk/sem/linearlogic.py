@@ -2,30 +2,31 @@
 #
 # Author: Dan Garrette <dhgarrette@gmail.com>
 #
-# Copyright (C) 2001-2016 NLTK Project
+# Copyright (C) 2001-2020 NLTK Project
 # URL: <http://nltk.org/>
 # For license information, see LICENSE.TXT
-from __future__ import print_function, unicode_literals
 
 from nltk.internals import Counter
-from nltk.compat import string_types, python_2_unicode_compatible
 from nltk.sem.logic import LogicParser, APP
 
 _counter = Counter()
 
-class Tokens(object):
-    #Punctuation
-    OPEN = '('
-    CLOSE = ')'
 
-    #Operations
-    IMP = '-o'
+class Tokens(object):
+    # Punctuation
+    OPEN = "("
+    CLOSE = ")"
+
+    # Operations
+    IMP = "-o"
 
     PUNCT = [OPEN, CLOSE]
     TOKENS = PUNCT + [IMP]
 
+
 class LinearLogicParser(LogicParser):
     """A linear logic expression parser."""
+
     def __init__(self):
         LogicParser.__init__(self)
 
@@ -57,7 +58,7 @@ class LinearLogicParser(LogicParser):
         argument expression."""
         if self.has_priority(APP, context):
             if self.inRange(0) and self.token(0) == Tokens.OPEN:
-                self.token() #swallow then open paren
+                self.token()  # swallow then open paren
                 argument = self.process_next_expression(APP)
                 self.assertNextToken(Tokens.CLOSE)
                 expression = ApplicationExpression(expression, argument, None)
@@ -70,7 +71,6 @@ class LinearLogicParser(LogicParser):
             return ConstantExpression(name)
 
 
-@python_2_unicode_compatible
 class Expression(object):
 
     _linear_logic_parser = LinearLogicParser()
@@ -86,17 +86,16 @@ class Expression(object):
         return self.applyto(other)
 
     def __repr__(self):
-        return '<%s %s>' % (self.__class__.__name__, self)
+        return "<%s %s>" % (self.__class__.__name__, self)
 
 
-@python_2_unicode_compatible
 class AtomicExpression(Expression):
     def __init__(self, name, dependencies=None):
         """
         :param name: str for the constant name
         :param dependencies: list of int for the indices on which this atom is dependent
         """
-        assert isinstance(name, string_types)
+        assert isinstance(name, str)
         self.name = name
 
         if not dependencies:
@@ -156,6 +155,7 @@ class AtomicExpression(Expression):
     def __hash__(self):
         return hash(self.name)
 
+
 class ConstantExpression(AtomicExpression):
     def unify(self, other, bindings):
         """
@@ -177,6 +177,7 @@ class ConstantExpression(AtomicExpression):
             return bindings
         raise UnificationException(self, other, bindings)
 
+
 class VariableExpression(AtomicExpression):
     def unify(self, other, bindings):
         """
@@ -196,7 +197,7 @@ class VariableExpression(AtomicExpression):
         except VariableBindingException:
             raise UnificationException(self, other, bindings)
 
-@python_2_unicode_compatible
+
 class ImpExpression(Expression):
     def __init__(self, antecedent, consequent):
         """
@@ -209,7 +210,9 @@ class ImpExpression(Expression):
         self.consequent = consequent
 
     def simplify(self, bindings=None):
-        return self.__class__(self.antecedent.simplify(bindings), self.consequent.simplify(bindings))
+        return self.__class__(
+            self.antecedent.simplify(bindings), self.consequent.simplify(bindings)
+        )
 
     def unify(self, other, bindings):
         """
@@ -222,7 +225,11 @@ class ImpExpression(Expression):
         """
         assert isinstance(other, ImpExpression)
         try:
-            return bindings + self.antecedent.unify(other.antecedent, bindings) + self.consequent.unify(other.consequent, bindings)
+            return (
+                bindings
+                + self.antecedent.unify(other.antecedent, bindings)
+                + self.consequent.unify(other.consequent, bindings)
+            )
         except VariableBindingException:
             raise UnificationException(self, other, bindings)
 
@@ -236,7 +243,7 @@ class ImpExpression(Expression):
         """
         (a, a_new) = self.antecedent.compile_neg(index_counter, glueFormulaFactory)
         (c, c_new) = self.consequent.compile_pos(index_counter, glueFormulaFactory)
-        return (ImpExpression(a,c), a_new + c_new)
+        return (ImpExpression(a, c), a_new + c_new)
 
     def compile_neg(self, index_counter, glueFormulaFactory):
         """
@@ -250,7 +257,7 @@ class ImpExpression(Expression):
         (c, c_new) = self.consequent.compile_neg(index_counter, glueFormulaFactory)
         fresh_index = index_counter.get()
         c.dependencies.append(fresh_index)
-        new_v = glueFormulaFactory('v%s' % fresh_index, a, set([fresh_index]))
+        new_v = glueFormulaFactory("v%s" % fresh_index, a, set([fresh_index]))
         return (c, a_new + c_new + [new_v])
 
     def initialize_labels(self, fstruct):
@@ -258,20 +265,30 @@ class ImpExpression(Expression):
         self.consequent.initialize_labels(fstruct)
 
     def __eq__(self, other):
-        return self.__class__ == other.__class__ and \
-                self.antecedent == other.antecedent and self.consequent == other.consequent
+        return (
+            self.__class__ == other.__class__
+            and self.antecedent == other.antecedent
+            and self.consequent == other.consequent
+        )
 
     def __ne__(self, other):
         return not self == other
 
     def __str__(self):
         return "%s%s %s %s%s" % (
-            Tokens.OPEN, self.antecedent, Tokens.IMP, self.consequent, Tokens.CLOSE)
+            Tokens.OPEN,
+            self.antecedent,
+            Tokens.IMP,
+            self.consequent,
+            Tokens.CLOSE,
+        )
 
     def __hash__(self):
-        return hash('%s%s%s' % (hash(self.antecedent), Tokens.IMP, hash(self.consequent)))
+        return hash(
+            "%s%s%s" % (hash(self.antecedent), Tokens.IMP, hash(self.consequent))
+        )
 
-@python_2_unicode_compatible
+
 class ApplicationExpression(Expression):
     def __init__(self, function, argument, argument_indices=None):
         """
@@ -295,15 +312,23 @@ class ApplicationExpression(Expression):
                 bindings += argument.bindings
             bindings += function_simp.antecedent.unify(argument_simp, bindings)
         except UnificationException as e:
-            raise LinearLogicApplicationException('Cannot apply %s to %s. %s' % (function_simp, argument_simp, e))
+            raise LinearLogicApplicationException(
+                "Cannot apply %s to %s. %s" % (function_simp, argument_simp, e)
+            )
 
         # If you are running it on complied premises, more conditions apply
         if argument_indices:
             # A.dependencies of (A -o (B -o C)) must be a proper subset of argument_indices
             if not set(function_simp.antecedent.dependencies) < argument_indices:
-                raise LinearLogicApplicationException('Dependencies unfulfilled when attempting to apply Linear Logic formula %s to %s' % (function_simp, argument_simp))
+                raise LinearLogicApplicationException(
+                    "Dependencies unfulfilled when attempting to apply Linear Logic formula %s to %s"
+                    % (function_simp, argument_simp)
+                )
             if set(function_simp.antecedent.dependencies) == argument_indices:
-                raise LinearLogicApplicationException('Dependencies not a proper subset of indices when attempting to apply Linear Logic formula %s to %s' % (function_simp, argument_simp))
+                raise LinearLogicApplicationException(
+                    "Dependencies not a proper subset of indices when attempting to apply Linear Logic formula %s to %s"
+                    % (function_simp, argument_simp)
+                )
 
         self.function = function
         self.argument = argument
@@ -324,8 +349,11 @@ class ApplicationExpression(Expression):
         return self.function.simplify(bindings).consequent
 
     def __eq__(self, other):
-        return self.__class__ == other.__class__ and \
-                self.function == other.function and self.argument == other.argument
+        return (
+            self.__class__ == other.__class__
+            and self.function == other.function
+            and self.argument == other.argument
+        )
 
     def __ne__(self, other):
         return not self == other
@@ -334,9 +362,11 @@ class ApplicationExpression(Expression):
         return "%s" % self.function + Tokens.OPEN + "%s" % self.argument + Tokens.CLOSE
 
     def __hash__(self):
-        return hash('%s%s%s' % (hash(self.antecedent), Tokens.OPEN, hash(self.consequent)))
+        return hash(
+            "%s%s%s" % (hash(self.antecedent), Tokens.OPEN, hash(self.consequent))
+        )
 
-@python_2_unicode_compatible
+
 class BindingDict(object):
     def __init__(self, bindings=None):
         """
@@ -372,7 +402,9 @@ class BindingDict(object):
         if not existing or binding == existing:
             self.d[variable] = binding
         else:
-            raise VariableBindingException('Variable %s already bound to another value' % (variable))
+            raise VariableBindingException(
+                "Variable %s already bound to another value" % (variable)
+            )
 
     def __getitem__(self, variable):
         """
@@ -404,8 +436,10 @@ class BindingDict(object):
                 combined[v] = other.d[v]
             return combined
         except VariableBindingException:
-            raise VariableBindingException('Attempting to add two contradicting'\
-                        ' VariableBindingsLists: %s, %s' % (self, other))
+            raise VariableBindingException(
+                "Attempting to add two contradicting"
+                " VariableBindingsLists: %s, %s" % (self, other)
+            )
 
     def __ne__(self, other):
         return not self == other
@@ -416,17 +450,20 @@ class BindingDict(object):
         return self.d == other.d
 
     def __str__(self):
-        return '{' + ', '.join('%s: %s' % (v, self.d[v]) for v in self.d) + '}'
+        return "{" + ", ".join("%s: %s" % (v, self.d[v]) for v in self.d) + "}"
 
     def __repr__(self):
-        return 'BindingDict: %s' % self
+        return "BindingDict: %s" % self
+
 
 class VariableBindingException(Exception):
     pass
 
+
 class UnificationException(Exception):
     def __init__(self, a, b, bindings):
-        Exception.__init__(self, 'Cannot unify %s with %s given %s' % (a, b, bindings))
+        Exception.__init__(self, "Cannot unify %s with %s given %s" % (a, b, bindings))
+
 
 class LinearLogicApplicationException(Exception):
     pass
@@ -435,15 +472,15 @@ class LinearLogicApplicationException(Exception):
 def demo():
     lexpr = Expression.fromstring
 
-    print(lexpr(r'f'))
-    print(lexpr(r'(g -o f)'))
-    print(lexpr(r'((g -o G) -o G)'))
-    print(lexpr(r'g -o h -o f'))
-    print(lexpr(r'(g -o f)(g)').simplify())
-    print(lexpr(r'(H -o f)(g)').simplify())
-    print(lexpr(r'((g -o G) -o G)((g -o f))').simplify())
-    print(lexpr(r'(H -o H)((g -o f))').simplify())
+    print(lexpr(r"f"))
+    print(lexpr(r"(g -o f)"))
+    print(lexpr(r"((g -o G) -o G)"))
+    print(lexpr(r"g -o h -o f"))
+    print(lexpr(r"(g -o f)(g)").simplify())
+    print(lexpr(r"(H -o f)(g)").simplify())
+    print(lexpr(r"((g -o G) -o G)((g -o f))").simplify())
+    print(lexpr(r"(H -o H)((g -o f))").simplify())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     demo()

@@ -1,6 +1,6 @@
 # Natural Language Toolkit:
 #
-# Copyright (C) 2001-2016 NLTK Project
+# Copyright (C) 2001-2020 NLTK Project
 # Author: Piotr Kasprzyk <p.j.kasprzyk@gmail.com>
 # URL: <http://nltk.org/>
 # For license information, see LICENSE.TXT
@@ -9,11 +9,11 @@ from nltk.corpus.reader.api import *
 from nltk.corpus.reader.xmldocs import XMLCorpusReader
 
 
-PARA = re.compile(r'<p(?: [^>]*){0,1}>(.*?)</p>')
-SENT = re.compile(r'<s(?: [^>]*){0,1}>(.*?)</s>')
+PARA = re.compile(r"<p(?: [^>]*){0,1}>(.*?)</p>")
+SENT = re.compile(r"<s(?: [^>]*){0,1}>(.*?)</s>")
 
-TAGGEDWORD = re.compile(r'<([wc](?: [^>]*){0,1}>)(.*?)</[wc]>')
-WORD = re.compile(r'<[wc](?: [^>]*){0,1}>(.*?)</[wc]>')
+TAGGEDWORD = re.compile(r"<([wc](?: [^>]*){0,1}>)(.*?)</[wc]>")
+WORD = re.compile(r"<[wc](?: [^>]*){0,1}>(.*?)</[wc]>")
 
 TYPE = re.compile(r'type="(.*?)"')
 ANA = re.compile(r'ana="(.*?)"')
@@ -22,9 +22,16 @@ TEXTID = re.compile(r'text id="(.*?)"')
 
 
 class TEICorpusView(StreamBackedCorpusView):
-    def __init__(self, corpus_file,
-                 tagged, group_by_sent, group_by_para,
-                 tagset=None, head_len=0, textids=None):
+    def __init__(
+        self,
+        corpus_file,
+        tagged,
+        group_by_sent,
+        group_by_para,
+        tagset=None,
+        head_len=0,
+        textids=None,
+    ):
 
         self._tagged = tagged
         self._textids = textids
@@ -39,22 +46,23 @@ class TEICorpusView(StreamBackedCorpusView):
     def read_block(self, stream):
         block = stream.readlines(self._pagesize)
         block = concat(block)
-        while (block.count('<text id') > block.count('</text>')) \
-                or block.count('<text id') == 0:
+        while (block.count("<text id") > block.count("</text>")) or block.count(
+            "<text id"
+        ) == 0:
             tmp = stream.readline()
             if len(tmp) <= 0:
                 break
             block += tmp
 
-        block = block.replace('\n', '')
+        block = block.replace("\n", "")
 
         textids = TEXTID.findall(block)
         if self._textids:
             for tid in textids:
                 if tid not in self._textids:
                     beg = block.find(tid) - 1
-                    end = block[beg:].find('</text>') + len('</text>')
-                    block = block[:beg] + block[beg + end:]
+                    end = block[beg:].find("</text>") + len("</text>")
+                    block = block[:beg] + block[beg + end :]
 
         output = []
         for para_str in PARA.findall(block):
@@ -63,8 +71,7 @@ class TEICorpusView(StreamBackedCorpusView):
                 if not self._tagged:
                     sent = WORD.findall(sent_str)
                 else:
-                    sent = list(
-                        map(self._parse_tag, TAGGEDWORD.findall(sent_str)))
+                    sent = list(map(self._parse_tag, TAGGEDWORD.findall(sent_str)))
                 if self._group_by_sent:
                     para.append(sent)
                 else:
@@ -77,7 +84,7 @@ class TEICorpusView(StreamBackedCorpusView):
 
     def _parse_tag(self, tag_word_tuple):
         (tag, word) = tag_word_tuple
-        if tag.startswith('w'):
+        if tag.startswith("w"):
             tag = ANA.search(tag).group(1)
         else:  # tag.startswith('c')
             tag = TYPE.search(tag).group(1)
@@ -88,8 +95,8 @@ class Pl196xCorpusReader(CategorizedCorpusReader, XMLCorpusReader):
     head_len = 2770
 
     def __init__(self, *args, **kwargs):
-        if 'textid_file' in kwargs:
-            self._textids = kwargs['textid_file']
+        if "textid_file" in kwargs:
+            self._textids = kwargs["textid_file"]
         else:
             self._textids = None
 
@@ -105,10 +112,10 @@ class Pl196xCorpusReader(CategorizedCorpusReader, XMLCorpusReader):
             with open(self._textids) as fp:
                 for line in fp:
                     line = line.strip()
-                    file_id, text_ids = line.split(' ', 1)
+                    file_id, text_ids = line.split(" ", 1)
                     if file_id not in self.fileids():
                         raise ValueError(
-                            'In text_id mapping file %s: %s not found'
+                            "In text_id mapping file %s: %s not found"
                             % (self._textids, file_id)
                         )
                     for text_id in text_ids.split(self._delimiter):
@@ -120,11 +127,18 @@ class Pl196xCorpusReader(CategorizedCorpusReader, XMLCorpusReader):
 
     def _resolve(self, fileids, categories, textids=None):
         tmp = None
-        if len(filter(lambda accessor: accessor is None,
-                      (fileids, categories, textids))) != 1:
+        if (
+            len(list(
+                filter(
+                    lambda accessor: accessor is None, (fileids, categories, textids)
+                )
+            ))
+            != 1
+        ):
 
-            raise ValueError('Specify exactly one of: fileids, '
-                             'categories or textids')
+            raise ValueError(
+                "Specify exactly one of: fileids, " "categories or textids"
+            )
 
         if fileids is not None:
             return fileids, None
@@ -133,12 +147,12 @@ class Pl196xCorpusReader(CategorizedCorpusReader, XMLCorpusReader):
             return self.fileids(categories), None
 
         if textids is not None:
-            if isinstance(textids, compat.string_types):
+            if isinstance(textids, str):
                 textids = [textids]
             files = sum((self._t2f[t] for t in textids), [])
             tdict = dict()
             for f in files:
-                tdict[f] = (set(self._f2t[f]) & set(textids))
+                tdict[f] = set(self._f2t[f]) & set(textids)
             return files, tdict
 
     def decode_tag(self, tag):
@@ -154,9 +168,10 @@ class Pl196xCorpusReader(CategorizedCorpusReader, XMLCorpusReader):
         of required chunks---giving much more control to the user.
         """
         fileids, _ = self._resolve(fileids, categories)
-        if fileids is None: return sorted(self._t2f)
+        if fileids is None:
+            return sorted(self._t2f)
 
-        if isinstance(fileids, compat.string_types):
+        if isinstance(fileids, str):
             fileids = [fileids]
         return sorted(sum((self._f2t[d] for d in fileids), []))
 
@@ -164,127 +179,203 @@ class Pl196xCorpusReader(CategorizedCorpusReader, XMLCorpusReader):
         fileids, textids = self._resolve(fileids, categories, textids)
         if fileids is None:
             fileids = self._fileids
-        elif isinstance(fileids, compat.string_types):
+        elif isinstance(fileids, str):
             fileids = [fileids]
 
         if textids:
-            return concat([TEICorpusView(self.abspath(fileid),
-                                         False, False, False,
-                                         head_len=self.head_len,
-                                         textids=textids[fileid])
-                           for fileid in fileids])
+            return concat(
+                [
+                    TEICorpusView(
+                        self.abspath(fileid),
+                        False,
+                        False,
+                        False,
+                        head_len=self.head_len,
+                        textids=textids[fileid],
+                    )
+                    for fileid in fileids
+                ]
+            )
         else:
-            return concat([TEICorpusView(self.abspath(fileid),
-                                         False, False, False,
-                                         head_len=self.head_len)
-                           for fileid in fileids])
+            return concat(
+                [
+                    TEICorpusView(
+                        self.abspath(fileid),
+                        False,
+                        False,
+                        False,
+                        head_len=self.head_len,
+                    )
+                    for fileid in fileids
+                ]
+            )
 
     def sents(self, fileids=None, categories=None, textids=None):
         fileids, textids = self._resolve(fileids, categories, textids)
         if fileids is None:
             fileids = self._fileids
-        elif isinstance(fileids, compat.string_types):
+        elif isinstance(fileids, str):
             fileids = [fileids]
 
         if textids:
-            return concat([TEICorpusView(self.abspath(fileid),
-                                         False, True, False,
-                                         head_len=self.head_len,
-                                         textids=textids[fileid])
-                           for fileid in fileids])
+            return concat(
+                [
+                    TEICorpusView(
+                        self.abspath(fileid),
+                        False,
+                        True,
+                        False,
+                        head_len=self.head_len,
+                        textids=textids[fileid],
+                    )
+                    for fileid in fileids
+                ]
+            )
         else:
-            return concat([TEICorpusView(self.abspath(fileid),
-                                         False, True, False,
-                                         head_len=self.head_len)
-                           for fileid in fileids])
+            return concat(
+                [
+                    TEICorpusView(
+                        self.abspath(fileid), False, True, False, head_len=self.head_len
+                    )
+                    for fileid in fileids
+                ]
+            )
 
     def paras(self, fileids=None, categories=None, textids=None):
         fileids, textids = self._resolve(fileids, categories, textids)
         if fileids is None:
             fileids = self._fileids
-        elif isinstance(fileids, compat.string_types):
+        elif isinstance(fileids, str):
             fileids = [fileids]
 
         if textids:
-            return concat([TEICorpusView(self.abspath(fileid),
-                                         False, True, True,
-                                         head_len=self.head_len,
-                                         textids=textids[fileid])
-                           for fileid in fileids])
+            return concat(
+                [
+                    TEICorpusView(
+                        self.abspath(fileid),
+                        False,
+                        True,
+                        True,
+                        head_len=self.head_len,
+                        textids=textids[fileid],
+                    )
+                    for fileid in fileids
+                ]
+            )
         else:
-            return concat([TEICorpusView(self.abspath(fileid),
-                                         False, True, True,
-                                         head_len=self.head_len)
-                           for fileid in fileids])
+            return concat(
+                [
+                    TEICorpusView(
+                        self.abspath(fileid), False, True, True, head_len=self.head_len
+                    )
+                    for fileid in fileids
+                ]
+            )
 
     def tagged_words(self, fileids=None, categories=None, textids=None):
         fileids, textids = self._resolve(fileids, categories, textids)
         if fileids is None:
             fileids = self._fileids
-        elif isinstance(fileids, compat.string_types):
+        elif isinstance(fileids, str):
             fileids = [fileids]
 
         if textids:
-            return concat([TEICorpusView(self.abspath(fileid),
-                                         True, False, False,
-                                         head_len=self.head_len,
-                                         textids=textids[fileid])
-                           for fileid in fileids])
+            return concat(
+                [
+                    TEICorpusView(
+                        self.abspath(fileid),
+                        True,
+                        False,
+                        False,
+                        head_len=self.head_len,
+                        textids=textids[fileid],
+                    )
+                    for fileid in fileids
+                ]
+            )
         else:
-            return concat([TEICorpusView(self.abspath(fileid),
-                                         True, False, False,
-                                         head_len=self.head_len)
-                           for fileid in fileids])
+            return concat(
+                [
+                    TEICorpusView(
+                        self.abspath(fileid), True, False, False, head_len=self.head_len
+                    )
+                    for fileid in fileids
+                ]
+            )
 
     def tagged_sents(self, fileids=None, categories=None, textids=None):
         fileids, textids = self._resolve(fileids, categories, textids)
         if fileids is None:
             fileids = self._fileids
-        elif isinstance(fileids, compat.string_types):
+        elif isinstance(fileids, str):
             fileids = [fileids]
 
         if textids:
-            return concat([TEICorpusView(self.abspath(fileid),
-                                         True, True, False,
-                                         head_len=self.head_len,
-                                         textids=textids[fileid])
-                           for fileid in fileids])
+            return concat(
+                [
+                    TEICorpusView(
+                        self.abspath(fileid),
+                        True,
+                        True,
+                        False,
+                        head_len=self.head_len,
+                        textids=textids[fileid],
+                    )
+                    for fileid in fileids
+                ]
+            )
         else:
-            return concat([TEICorpusView(self.abspath(fileid),
-                                         True, True, False,
-                                         head_len=self.head_len)
-                           for fileid in fileids])
+            return concat(
+                [
+                    TEICorpusView(
+                        self.abspath(fileid), True, True, False, head_len=self.head_len
+                    )
+                    for fileid in fileids
+                ]
+            )
 
     def tagged_paras(self, fileids=None, categories=None, textids=None):
         fileids, textids = self._resolve(fileids, categories, textids)
         if fileids is None:
             fileids = self._fileids
-        elif isinstance(fileids, compat.string_types):
+        elif isinstance(fileids, str):
             fileids = [fileids]
 
         if textids:
-            return concat([TEICorpusView(self.abspath(fileid),
-                                         True, True, True,
-                                         head_len=self.head_len,
-                                         textids=textids[fileid])
-                           for fileid in fileids])
+            return concat(
+                [
+                    TEICorpusView(
+                        self.abspath(fileid),
+                        True,
+                        True,
+                        True,
+                        head_len=self.head_len,
+                        textids=textids[fileid],
+                    )
+                    for fileid in fileids
+                ]
+            )
         else:
-            return concat([TEICorpusView(self.abspath(fileid),
-                                         True, True, True,
-                                         head_len=self.head_len)
-                           for fileid in fileids])
+            return concat(
+                [
+                    TEICorpusView(
+                        self.abspath(fileid), True, True, True, head_len=self.head_len
+                    )
+                    for fileid in fileids
+                ]
+            )
 
     def xml(self, fileids=None, categories=None):
         fileids, _ = self._resolve(fileids, categories)
         if len(fileids) == 1:
             return XMLCorpusReader.xml(self, fileids[0])
         else:
-            raise TypeError('Expected a single file')
+            raise TypeError("Expected a single file")
 
     def raw(self, fileids=None, categories=None):
         fileids, _ = self._resolve(fileids, categories)
         if fileids is None:
             fileids = self._fileids
-        elif isinstance(fileids, compat.string_types):
+        elif isinstance(fileids, str):
             fileids = [fileids]
         return concat([self.open(f).read() for f in fileids])

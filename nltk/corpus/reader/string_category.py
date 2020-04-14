@@ -1,6 +1,6 @@
 # Natural Language Toolkit: String Category Corpus Reader
 #
-# Copyright (C) 2001-2016 NLTK Project
+# Copyright (C) 2001-2020 NLTK Project
 # Author: Steven Bird <stevenbird1@gmail.com>
 #         Edward Loper <edloper@gmail.com>
 # URL: <http://nltk.org/>
@@ -18,8 +18,6 @@ NUM:date When did Hawaii become a state ?
 """
 
 # based on PPAttachmentCorpusReader
-
-from nltk import compat
 from nltk.corpus.reader.util import *
 from nltk.corpus.reader.api import *
 
@@ -27,7 +25,7 @@ from nltk.corpus.reader.api import *
 # in nltk, we use the form (data, tag) -- e.g., tagged words and
 # labeled texts for classifiers.
 class StringCategoryCorpusReader(CorpusReader):
-    def __init__(self, root, fileids, delimiter=' ', encoding='utf8'):
+    def __init__(self, root, fileids, delimiter=" ", encoding="utf8"):
         """
         :param root: The root directory for this corpus.
         :param fileids: A list or regexp specifying the fileids in this corpus.
@@ -37,18 +35,25 @@ class StringCategoryCorpusReader(CorpusReader):
         self._delimiter = delimiter
 
     def tuples(self, fileids=None):
-        if fileids is None: fileids = self._fileids
-        elif isinstance(fileids, compat.string_types): fileids = [fileids]
-        return concat([StreamBackedCorpusView(fileid, self._read_tuple_block,
-                                              encoding=enc)
-                       for (fileid, enc) in self.abspaths(fileids, True)])
+        if fileids is None:
+            fileids = self._fileids
+        elif isinstance(fileids, str):
+            fileids = [fileids]
+        return concat(
+            [
+                StreamBackedCorpusView(fileid, self._read_tuple_block, encoding=enc)
+                for (fileid, enc) in self.abspaths(fileids, True)
+            ]
+        )
 
     def raw(self, fileids=None):
         """
         :return: the text contents of the given fileids, as a single string.
         """
-        if fileids is None: fileids = self._fileids
-        elif isinstance(fileids, compat.string_types): fileids = [fileids]
+        if fileids is None:
+            fileids = self._fileids
+        elif isinstance(fileids, str):
+            fileids = [fileids]
         return concat([self.open(f).read() for f in fileids])
 
     def _read_tuple_block(self, stream):

@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function
 import sys
 import os
 import nose
@@ -8,25 +7,33 @@ from nose.plugins.manager import PluginManager
 from nose.plugins.doctests import Doctest
 from nose.plugins import builtin
 
-NLTK_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+NLTK_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 sys.path.insert(0, NLTK_ROOT)
 
-NLTK_TEST_DIR = os.path.join(NLTK_ROOT, 'nltk')
+NLTK_TEST_DIR = os.path.join(NLTK_ROOT, "nltk")
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # there shouldn't be import from NLTK for coverage to work properly
-    from doctest_nose_plugin import DoctestFix
+    try:
+        # Import RedNose plugin for colored test output
+        from rednose import RedNose
+
+        rednose_available = True
+    except ImportError:
+        rednose_available = False
 
     class NltkPluginManager(PluginManager):
         """
         Nose plugin manager that replaces standard doctest plugin
-        with a patched version.
+        with a patched version and adds RedNose plugin for colored test output.
         """
+
         def loadPlugins(self):
             for plug in builtin.plugins:
-                if plug != Doctest:
-                    self.addPlugin(plug())
-            self.addPlugin(DoctestFix())
+                self.addPlugin(plug())
+            if rednose_available:
+                self.addPlugin(RedNose())
+
             super(NltkPluginManager, self).loadPlugins()
 
     manager = NltkPluginManager()
@@ -43,22 +50,26 @@ if __name__ == '__main__':
     if not args:
         args = [NLTK_TEST_DIR]
 
-    if all(arg.startswith('-') for arg in args):
+    if all(arg.startswith("-") for arg in args):
         # only extra options were passed
         args += [NLTK_TEST_DIR]
 
+    # Activate RedNose and hide skipped test messages from output
+    if rednose_available:
+        args += ["--rednose", "--hide-skips"]
+
     arguments = [
-        '--exclude=', # why is this needed?
-        #'--with-xunit',
-        #'--xunit-file=$WORKSPACE/nosetests.xml',
-        #'--nocapture',
-        '--with-doctest',
-        #'--doctest-tests',
-        #'--debug=nose,nose.importer,nose.inspector,nose.plugins,nose.result,nose.selector',
-        '--doctest-extension=.doctest',
-        '--doctest-fixtures=_fixt',
-        '--doctest-options=+ELLIPSIS,+NORMALIZE_WHITESPACE,+IGNORE_EXCEPTION_DETAIL,+ALLOW_UNICODE,doctestencoding=utf-8',
-        #'--verbosity=3',
+        "--exclude=",  # why is this needed?
+        # '--with-xunit',
+        # '--xunit-file=$WORKSPACE/nosetests.xml',
+        # '--nocapture',
+        "--with-doctest",
+        # '--doctest-tests',
+        # '--debug=nose,nose.importer,nose.inspector,nose.plugins,nose.result,nose.selector',
+        "--doctest-extension=.doctest",
+        "--doctest-fixtures=_fixt",
+        "--doctest-options=+ELLIPSIS,+NORMALIZE_WHITESPACE,+IGNORE_EXCEPTION_DETAIL",
+        # '--verbosity=3',
     ] + args
 
     nose.main(argv=arguments, plugins=manager.plugins)

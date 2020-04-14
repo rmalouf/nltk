@@ -1,6 +1,6 @@
 # Natural Language Toolkit: Product Reviews Corpus Reader
 #
-# Copyright (C) 2001-2016 NLTK Project
+# Copyright (C) 2001-2020 NLTK Project
 # Author: Pierpaolo Pantone <24alsecondo@gmail.com>
 # URL: <http://nltk.org/>
 # For license information, see LICENSE.TXT
@@ -59,24 +59,24 @@ Note: Some of the files (e.g. "ipod.txt", "Canon PowerShot SD500.txt") do not
     consideration.
 """
 
-from __future__ import division
-
 import re
 
 from nltk.corpus.reader.api import *
 from nltk.tokenize import *
 
-TITLE = re.compile(r'^\[t\](.*)$') # [t] Title
-FEATURES = re.compile(r'((?:(?:\w+\s)+)?\w+)\[((?:\+|\-)\d)\]') # find 'feature' in feature[+3]
-NOTES = re.compile(r'\[(?!t)(p|u|s|cc|cs)\]') # find 'p' in camera[+2][p]
-SENT = re.compile(r'##(.*)$') # find tokenized sentence
+TITLE = re.compile(r"^\[t\](.*)$")  # [t] Title
+FEATURES = re.compile(
+    r"((?:(?:\w+\s)+)?\w+)\[((?:\+|\-)\d)\]"
+)  # find 'feature' in feature[+3]
+NOTES = re.compile(r"\[(?!t)(p|u|s|cc|cs)\]")  # find 'p' in camera[+2][p]
+SENT = re.compile(r"##(.*)$")  # find tokenized sentence
 
 
-@compat.python_2_unicode_compatible
 class Review(object):
     """
     A Review is the main block of a ReviewsCorpusReader.
     """
+
     def __init__(self, title=None, review_lines=None):
         """
         :param title: the title of the review.
@@ -120,15 +120,17 @@ class Review(object):
         return [review_line.sent for review_line in self.review_lines]
 
     def __repr__(self):
-        return 'Review(title=\"{}\", review_lines={})'.format(self.title, self.review_lines)
+        return 'Review(title="{}", review_lines={})'.format(
+            self.title, self.review_lines
+        )
 
 
-@compat.python_2_unicode_compatible
 class ReviewLine(object):
     """
     A ReviewLine represents a sentence of the review, together with (optional)
     annotations of its features and notes about the reviewed item.
     """
+
     def __init__(self, sent, features=None, notes=None):
         self.sent = sent
         if features is None:
@@ -142,8 +144,9 @@ class ReviewLine(object):
             self.notes = notes
 
     def __repr__(self):
-        return ('ReviewLine(features={}, notes={}, sent={})'.format(
-            self.features, self.notes, self.sent))
+        return "ReviewLine(features={}, notes={}, sent={})".format(
+            self.features, self.notes, self.sent
+        )
 
 
 class ReviewsCorpusReader(CorpusReader):
@@ -171,18 +174,18 @@ class ReviewsCorpusReader(CorpusReader):
 
     We can compute stats for specific product features:
 
-        >>> from __future__ import division
         >>> n_reviews = len([(feat,score) for (feat,score) in product_reviews_1.features('Canon_G3.txt') if feat=='picture'])
         >>> tot = sum([int(score) for (feat,score) in product_reviews_1.features('Canon_G3.txt') if feat=='picture'])
-        >>> # We use float for backward compatibility with division in Python2.7
         >>> mean = tot / n_reviews
         >>> print(n_reviews, tot, mean)
         15 24 1.6
     """
+
     CorpusView = StreamBackedCorpusView
 
-    def __init__(self, root, fileids, word_tokenizer=WordPunctTokenizer(),
-                 encoding='utf8'):
+    def __init__(
+        self, root, fileids, word_tokenizer=WordPunctTokenizer(), encoding="utf8"
+    ):
         """
         :param root: The root directory for the corpus.
         :param fileids: a list or regexp specifying the fileids in the corpus.
@@ -206,10 +209,14 @@ class ReviewsCorpusReader(CorpusReader):
         """
         if fileids is None:
             fileids = self._fileids
-        elif isinstance(fileids, string_types):
+        elif isinstance(fileids, str):
             fileids = [fileids]
-        return concat([self.CorpusView(fileid, self._read_features, encoding=enc)
-                       for (fileid, enc) in self.abspaths(fileids, True)])
+        return concat(
+            [
+                self.CorpusView(fileid, self._read_features, encoding=enc)
+                for (fileid, enc) in self.abspaths(fileids, True)
+            ]
+        )
 
     def raw(self, fileids=None):
         """
@@ -220,7 +227,7 @@ class ReviewsCorpusReader(CorpusReader):
         """
         if fileids is None:
             fileids = self._fileids
-        elif isinstance(fileids, string_types):
+        elif isinstance(fileids, str):
             fileids = [fileids]
         return concat([self.open(f).read() for f in fileids])
 
@@ -241,8 +248,12 @@ class ReviewsCorpusReader(CorpusReader):
         """
         if fileids is None:
             fileids = self._fileids
-        return concat([self.CorpusView(fileid, self._read_review_block, encoding=enc)
-                       for (fileid, enc) in self.abspaths(fileids, True)])
+        return concat(
+            [
+                self.CorpusView(fileid, self._read_review_block, encoding=enc)
+                for (fileid, enc) in self.abspaths(fileids, True)
+            ]
+        )
 
     def sents(self, fileids=None):
         """
@@ -254,9 +265,12 @@ class ReviewsCorpusReader(CorpusReader):
             list of word strings.
         :rtype: list(list(str))
         """
-        return concat([self.CorpusView(path, self._read_sent_block, encoding=enc)
-                       for (path, enc, fileid)
-                       in self.abspaths(fileids, True, True)])
+        return concat(
+            [
+                self.CorpusView(path, self._read_sent_block, encoding=enc)
+                for (path, enc, fileid) in self.abspaths(fileids, True, True)
+            ]
+        )
 
     def words(self, fileids=None):
         """
@@ -268,9 +282,12 @@ class ReviewsCorpusReader(CorpusReader):
         :return: the given file(s) as a list of words and punctuation symbols.
         :rtype: list(str)
         """
-        return concat([self.CorpusView(path, self._read_word_block, encoding=enc)
-                       for (path, enc, fileid)
-                       in self.abspaths(fileids, True, True)])
+        return concat(
+            [
+                self.CorpusView(path, self._read_word_block, encoding=enc)
+                for (path, enc, fileid) in self.abspaths(fileids, True, True)
+            ]
+        )
 
     def _read_features(self, stream):
         features = []
@@ -285,10 +302,12 @@ class ReviewsCorpusReader(CorpusReader):
         while True:
             line = stream.readline()
             if not line:
-                return [] # end of file.
+                return []  # end of file.
             title_match = re.match(TITLE, line)
             if title_match:
-                review = Review(title=title_match.group(1).strip()) # We create a new review
+                review = Review(
+                    title=title_match.group(1).strip()
+                )  # We create a new review
                 break
 
         # Scan until we find another line matching the regexp, or EOF.
@@ -320,7 +339,7 @@ class ReviewsCorpusReader(CorpusReader):
 
     def _read_word_block(self, stream):
         words = []
-        for i in range(20): # Read 20 lines at a time.
+        for i in range(20):  # Read 20 lines at a time.
             line = stream.readline()
             sent = re.findall(SENT, line)
             if sent:

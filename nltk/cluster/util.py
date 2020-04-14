@@ -1,11 +1,11 @@
 # Natural Language Toolkit: Clusterer Utilities
 #
-# Copyright (C) 2001-2016 NLTK Project
+# Copyright (C) 2001-2020 NLTK Project
 # Author: Trevor Cohn <tacohn@cs.mu.oz.au>
-# Contributor: J Richard Snape 
+# Contributor: J Richard Snape
 # URL: <http://nltk.org/>
 # For license information, see LICENSE.TXT
-from __future__ import print_function, unicode_literals
+from abc import abstractmethod
 
 import copy
 from sys import stdout
@@ -17,7 +17,7 @@ except ImportError:
     pass
 
 from nltk.cluster.api import ClusterI
-from nltk.compat import python_2_unicode_compatible
+
 
 class VectorSpaceClusterer(ClusterI):
     """
@@ -25,6 +25,7 @@ class VectorSpaceClusterer(ClusterI):
     Optionally performs singular value decomposition to reduce the
     dimensionality.
     """
+
     def __init__(self, normalise=False, svd_dimensions=None):
         """
         :param normalise:       should vectors be normalised to length 1
@@ -47,10 +48,11 @@ class VectorSpaceClusterer(ClusterI):
         # use SVD to reduce the dimensionality
         if self._svd_dimensions and self._svd_dimensions < len(vectors[0]):
             [u, d, vt] = numpy.linalg.svd(numpy.transpose(numpy.array(vectors)))
-            S = d[:self._svd_dimensions] * \
-                numpy.identity(self._svd_dimensions, numpy.float64)
-            T = u[:,:self._svd_dimensions]
-            Dt = vt[:self._svd_dimensions,:]
+            S = d[: self._svd_dimensions] * numpy.identity(
+                self._svd_dimensions, numpy.float64
+            )
+            T = u[:, : self._svd_dimensions]
+            Dt = vt[: self._svd_dimensions, :]
             vectors = numpy.transpose(numpy.dot(S, Dt))
             self._Tt = numpy.transpose(T)
 
@@ -61,11 +63,11 @@ class VectorSpaceClusterer(ClusterI):
         if assign_clusters:
             return [self.classify(vector) for vector in vectors]
 
+    @abstractmethod
     def cluster_vectorspace(self, vectors, trace):
         """
         Finds the clusters using the given set of vectors.
         """
-        raise NotImplementedError()
 
     def classify(self, vector):
         if self._should_normalise:
@@ -75,11 +77,11 @@ class VectorSpaceClusterer(ClusterI):
         cluster = self.classify_vectorspace(vector)
         return self.cluster_name(cluster)
 
+    @abstractmethod
     def classify_vectorspace(self, vector):
         """
         Returns the index of the appropriate cluster for the vector.
         """
-        raise NotImplementedError()
 
     def likelihood(self, vector, label):
         if self._should_normalise:
@@ -93,7 +95,7 @@ class VectorSpaceClusterer(ClusterI):
         Returns the likelihood of the vector belonging to the cluster.
         """
         predicted = self.classify_vectorspace(vector)
-        return (1.0 if cluster == predicted else 0.0)
+        return 1.0 if cluster == predicted else 0.0
 
     def vector(self, vector):
         """
@@ -111,6 +113,7 @@ class VectorSpaceClusterer(ClusterI):
         """
         return vector / sqrt(numpy.dot(vector, vector))
 
+
 def euclidean_distance(u, v):
     """
     Returns the euclidean distance between vectors u and v. This is equivalent
@@ -119,12 +122,14 @@ def euclidean_distance(u, v):
     diff = u - v
     return sqrt(numpy.dot(diff, diff))
 
+
 def cosine_distance(u, v):
     """
-    Returns 1 minus the cosine of the angle between vectors v and u. This is equal to
-    1 - (u.v / |u||v|).
+    Returns 1 minus the cosine of the angle between vectors v and u. This is
+    equal to 1 - (u.v / |u||v|).
     """
     return 1 - (numpy.dot(u, v) / (sqrt(numpy.dot(u, u)) * sqrt(numpy.dot(v, v))))
+
 
 class _DendrogramNode(object):
     """ Tree node of a dendrogram. """
@@ -164,12 +169,11 @@ class _DendrogramNode(object):
         for priority, node in queue:
             groups.append(node.leaves())
         return groups
-    
+
     def __lt__(self, comparator):
         return cosine_distance(self._value, comparator._value) < 0
-    
 
-@python_2_unicode_compatible
+
 class Dendrogram(object):
     """
     Represents a dendrogram, a tree with a specified branching order.  This
@@ -218,12 +222,13 @@ class Dendrogram(object):
     def show(self, leaf_labels=[]):
         """
         Print the dendrogram in ASCII art to standard out.
-        :param leaf_labels: an optional list of strings to use for labeling the leaves
+        :param leaf_labels: an optional list of strings to use for labeling the
+                            leaves
         :type leaf_labels: list
         """
 
         # ASCII rendering characters
-        JOIN, HLINK, VLINK = '+', '-', '|'
+        JOIN, HLINK, VLINK = "+", "-", "|"
 
         # find the root (or create one)
         if len(self._items) > 1:
@@ -239,18 +244,19 @@ class Dendrogram(object):
 
         # find the bottom row and the best cell width
         width = max(map(len, last_row)) + 1
-        lhalf = int(width / 2)
+        lhalf = width // 2
         rhalf = int(width - lhalf - 1)
 
         # display functions
-        def format(centre, left=' ', right=' '):
-            return '%s%s%s' % (lhalf*left, centre, right*rhalf)
+        def format(centre, left=" ", right=" "):
+            return "%s%s%s" % (lhalf * left, centre, right * rhalf)
+
         def display(str):
             stdout.write(str)
 
         # for each merge, top down
         queue = [(root._value, root)]
-        verticals = [ format(' ') for leaf in leaves ]
+        verticals = [format(" ") for leaf in leaves]
         while queue:
             priority, node = queue.pop()
             child_left_leaf = list(map(lambda c: c.leaves(False)[0], node._children))
@@ -260,15 +266,18 @@ class Dendrogram(object):
                 max_idx = max(indices)
             for i in range(len(leaves)):
                 if leaves[i] in child_left_leaf:
-                    if i == min_idx:    display(format(JOIN, ' ', HLINK))
-                    elif i == max_idx:  display(format(JOIN, HLINK, ' '))
-                    else:               display(format(JOIN, HLINK, HLINK))
+                    if i == min_idx:
+                        display(format(JOIN, " ", HLINK))
+                    elif i == max_idx:
+                        display(format(JOIN, HLINK, " "))
+                    else:
+                        display(format(JOIN, HLINK, HLINK))
                     verticals[i] = format(VLINK)
                 elif min_idx <= i <= max_idx:
                     display(format(HLINK, HLINK, HLINK))
                 else:
                     display(verticals[i])
-            display('\n')
+            display("\n")
             for child in node._children:
                 if child._children:
                     queue.append((child._value, child))
@@ -276,11 +285,11 @@ class Dendrogram(object):
 
             for vertical in verticals:
                 display(vertical)
-            display('\n')
+            display("\n")
 
         # finally, display the last line
-        display(''.join(item.center(width) for item in last_row))
-        display('\n')
+        display("".join(item.center(width) for item in last_row))
+        display("\n")
 
     def __repr__(self):
         if len(self._items) > 1:
@@ -288,6 +297,4 @@ class Dendrogram(object):
         else:
             root = self._items[0]
         leaves = root.leaves(False)
-        return '<Dendrogram with %d leaves>' % len(leaves)
-
-
+        return "<Dendrogram with %d leaves>" % len(leaves)
