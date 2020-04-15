@@ -14,6 +14,7 @@ import textwrap
 import pydoc
 import bisect
 import os
+import io
 
 from itertools import islice, chain, combinations, tee
 from pprint import pprint
@@ -650,11 +651,13 @@ def binary_search_file(file, key, cache={}, cacheDepth=-1):
 
     :type file: file
     :param file: the file to be searched through.
-    :type key: str
+    :type key: bytes
     :param key: the identifier we are searching for.
     """
 
-    key = key + " "
+    assert isinstance(file, io.BufferedIOBase)
+
+    key = key + b" "
     keylen = len(key)
     start = 0
     currentDepth = 0
@@ -678,7 +681,7 @@ def binary_search_file(file, key, cache={}, cacheDepth=-1):
             while True:
                 file.seek(max(0, middle - 1))
                 if middle > 0:
-                    file.discard_line()
+                    file.readline()
                 offset = file.tell()
                 line = file.readline()
                 if line != "":

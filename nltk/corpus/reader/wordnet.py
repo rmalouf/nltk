@@ -1066,7 +1066,7 @@ class WordNetCorpusReader(CorpusReader):
     A corpus reader used to access wordnet or its variants.
     """
 
-    _ENCODING = "utf8"
+    _ENCODING = None
 
     # { Part-of-speech constants
     ADJ, ADJ_SAT, ADV, NOUN, VERB = "a", "s", "r", "n", "v"
@@ -1136,7 +1136,7 @@ class WordNetCorpusReader(CorpusReader):
 
         # Load the lexnames
         for i, line in enumerate(self.open("lexnames")):
-            index, lexname, _ = line.split()
+            index, lexname, _ = str(line, 'ascii').split()
             assert int(index) == i
             self._lexnames.append(lexname)
 
@@ -1193,6 +1193,7 @@ class WordNetCorpusReader(CorpusReader):
 
             # parse each line of the file (ignoring comment lines)
             for i, line in enumerate(self.open("index.%s" % suffix)):
+                line = str(line, 'ascii')
                 if line.startswith(" "):
                     continue
 
@@ -1242,7 +1243,7 @@ class WordNetCorpusReader(CorpusReader):
         for pos, suffix in self._FILEMAP.items():
             self._exception_map[pos] = {}
             for line in self.open("%s.exc" % suffix):
-                terms = line.split()
+                terms = str(line, 'ascii').split()
                 self._exception_map[pos][terms[0]] = terms[1:]
         self._exception_map[ADJ_SAT] = self._exception_map[ADJ]
 
@@ -1264,7 +1265,7 @@ class WordNetCorpusReader(CorpusReader):
     def get_version(self):
         fh = self._data_file(ADJ)
         for line in fh:
-            match = re.search(r"WordNet (\d+\.\d+) Copyright", line)
+            match = re.search(r"WordNet (\d+\.\d+) Copyright", str(line, 'ascii'))
             if match is not None:
                 version = match.group(1)
                 fh.seek(0)
@@ -1301,7 +1302,7 @@ class WordNetCorpusReader(CorpusReader):
             self._key_synset_file = self.open("index.sense")
 
         # Find the synset for the lemma.
-        synset_line = _binary_search_file(self._key_synset_file, key)
+        synset_line = _binary_search_file(self._key_synset_file, key.encode('ascii'))
         if not synset_line:
             raise WordNetError("No synset found for key %r" % key)
         offset = int(synset_line.split()[1])
@@ -1393,7 +1394,7 @@ class WordNetCorpusReader(CorpusReader):
         try:
 
             # parse out the definitions and examples from the gloss
-            columns_str, gloss = data_file_line.strip().split("|")
+            columns_str, gloss = str(data_file_line, 'ascii').strip().split("|")
             definition = re.sub(r"[\"].*?[\"]", "", gloss).strip()
             examples = re.findall(r'"([^"]*)"', gloss)
             for example in examples:
