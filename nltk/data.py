@@ -330,7 +330,9 @@ class FileSystemPathPointer(PathPointer, str):
         return stream
 
     def file_size(self):
-        return os.stat(self._path).st_size
+        # FIXME
+        raise NotImplementedError
+        #return os.stat(self._path).st_size
 
     def join(self, fileid):
         _path = os.path.join(self._path, fileid)
