@@ -655,7 +655,9 @@ def binary_search_file(file, key, cache={}, cacheDepth=-1):
     :param key: the identifier we are searching for.
     """
 
+    # We need to do byte-level file access for seek() and tell() to work correctly
     assert isinstance(file, io.BufferedIOBase)
+    assert isinstance(key, bytes)
 
     key = key + b" "
     keylen = len(key)

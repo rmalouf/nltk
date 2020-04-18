@@ -1136,7 +1136,7 @@ class WordNetCorpusReader(CorpusReader):
 
         # Load the lexnames
         for i, line in enumerate(self.open("lexnames")):
-            index, lexname, _ = str(line, 'ascii').split()
+            index, lexname, _ = str(line, "ascii").split()
             assert int(index) == i
             self._lexnames.append(lexname)
 
@@ -1193,7 +1193,7 @@ class WordNetCorpusReader(CorpusReader):
 
             # parse each line of the file (ignoring comment lines)
             for i, line in enumerate(self.open("index.%s" % suffix)):
-                line = str(line, 'ascii')
+                line = str(line, "ascii")
                 if line.startswith(" "):
                     continue
 
@@ -1243,7 +1243,7 @@ class WordNetCorpusReader(CorpusReader):
         for pos, suffix in self._FILEMAP.items():
             self._exception_map[pos] = {}
             for line in self.open("%s.exc" % suffix):
-                terms = str(line, 'ascii').split()
+                terms = str(line, "ascii").split()
                 self._exception_map[pos][terms[0]] = terms[1:]
         self._exception_map[ADJ_SAT] = self._exception_map[ADJ]
 
@@ -1265,7 +1265,7 @@ class WordNetCorpusReader(CorpusReader):
     def get_version(self):
         fh = self._data_file(ADJ)
         for line in fh:
-            match = re.search(r"WordNet (\d+\.\d+) Copyright", str(line, 'ascii'))
+            match = re.search(r"WordNet (\d+\.\d+) Copyright", str(line, "ascii"))
             if match is not None:
                 version = match.group(1)
                 fh.seek(0)
@@ -1302,10 +1302,10 @@ class WordNetCorpusReader(CorpusReader):
             self._key_synset_file = self.open("index.sense")
 
         # Find the synset for the lemma.
-        synset_line = _binary_search_file(self._key_synset_file, key.encode('ascii'))
+        synset_line = _binary_search_file(self._key_synset_file, key.encode("ascii"))
         if not synset_line:
             raise WordNetError("No synset found for key %r" % key)
-        offset = int(synset_line.split()[1])
+        offset = int(str(synset_line, "ascii").split()[1])
         synset = self.synset_from_pos_and_offset(pos, offset)
 
         # return the corresponding lemma
@@ -1371,7 +1371,7 @@ class WordNetCorpusReader(CorpusReader):
 
         data_file = self._data_file(pos)
         data_file.seek(offset)
-        data_file_line = data_file.readline()
+        data_file_line = str(data_file.readline(), "ascii")
         synset = self._synset_from_pos_and_line(pos, data_file_line)
         assert synset._offset == offset
         self._synset_offset_cache[pos][offset] = synset
@@ -1394,7 +1394,7 @@ class WordNetCorpusReader(CorpusReader):
         try:
 
             # parse out the definitions and examples from the gloss
-            columns_str, gloss = str(data_file_line, 'ascii').strip().split("|")
+            columns_str, gloss = data_file_line.strip().split("|")
             definition = re.sub(r"[\"].*?[\"]", "", gloss).strip()
             examples = re.findall(r'"([^"]*)"', gloss)
             for example in examples:
@@ -1670,6 +1670,7 @@ class WordNetCorpusReader(CorpusReader):
                 offset = data_file.tell()
                 line = data_file.readline()
                 while line:
+                    line = str(line, "ascii")
                     if not line[0].isspace():
                         if offset in cache[pos_tag]:
                             # See if the synset is cached
@@ -1760,9 +1761,9 @@ class WordNetCorpusReader(CorpusReader):
         if self._key_count_file is None:
             self._key_count_file = self.open("cntlist.rev")
         # find the key in the counts file and return the count
-        line = _binary_search_file(self._key_count_file, lemma._key)
+        line = _binary_search_file(self._key_count_file, lemma._key.encode("ascii"))
         if line:
-            return int(line.rsplit(" ", 1)[-1])
+            return int(str(line, "ascii").rsplit(" ", 1)[-1])
         else:
             return 0
 
