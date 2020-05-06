@@ -1,0 +1,1 @@
+This is stalled: TextIOWrapper.tell() doesn't work in 3.7, but is fixed in 3.8
